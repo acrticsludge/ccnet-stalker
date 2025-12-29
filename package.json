@@ -1,25 +1,39 @@
 {
-  "name": "ccnet-stalker",
+  "name": "pesu-sports",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.1.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "bcrypt": "^6.0.0",
+    "connect-mongo": "^5.1.0",
+    "console": "^0.7.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "lucide-react": "^0.553.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.3",
+    "next": "15.5.6",
+    "node-cron": "^4.2.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-tabs": "^6.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.1",
+    "eslint-config-next": "15.5.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
