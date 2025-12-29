@@ -1,4 +1,4 @@
-export default function Home() {
+export default function Nations() {
   return (
     <div>
       <div className="flex items-center justify-center">

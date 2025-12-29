@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
+import BackgroundImage from "./BackgroundImage";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,18 +22,28 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <NavBar />
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        {children}
+        {/* Background */}
+        <BackgroundImage />
+
+        {/* Navbar */}
+        <NavBar />
+
+        {/* CENTERING HAPPENS HERE */}
+        <main className="flex-1 flex items-center justify-center">
+          {children}
+        </main>
+
+        {/* Footer */}
+        <Footer />
       </body>
-      <Footer />
     </html>
   );
 }
