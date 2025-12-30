@@ -1,8 +1,12 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useUser } from "../context/AuthProvider";
 
 export default function Login() {
   const [id, setId] = useState("");
+  const router = useRouter();
+  const { refreshAuth } = useUser();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -11,6 +15,34 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.user) {
+        setSuccess(true);
+        console.log("Logged in user:", data.user.userid);
+
+        router.push("/");
+        await refreshAuth();
+
+        setSuccess(false);
+        setId(data.Id);
+      } else {
+        setError(data.message || "Login failed.");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.log(err);
+      setError("An unexpected error occurred.");
+      setLoading(false);
+    }
   };
   return (
     <div>
@@ -29,7 +61,7 @@ export default function Login() {
             Login
           </div>
           {success && (
-            <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
+            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
               Logging in...
             </div>
           )}
@@ -47,7 +79,7 @@ export default function Login() {
               <input
                 id="Id"
                 type=""
-                value={id}
+                value={id || ""}
                 onChange={(e) => setId(e.target.value)}
                 placeholder="Enter your Discord ID"
                 className="w-full px-3 py-2 border rounded focus:outline-none"
@@ -65,7 +97,7 @@ export default function Login() {
               <input
                 id="password"
                 type="password"
-                value={password}
+                value={password || ""}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 className="w-full px-3 py-2 border rounded focus:outline-none"
