@@ -1,70 +1,63 @@
 "use client";
-import {
-  useEffect,
-  useState,
-  createContext,
-  useContext,
-  ReactNode,
-  useCallback,
-} from "react";
 
-interface User {
-  _id: string;
+import { createContext, useContext, useEffect, useState } from "react";
+
+type User = {
   userid: string;
-}
+};
 
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
   loading: boolean;
-  refreshAuth: () => Promise<void>; // <--- Add this!
-}
+  refreshAuth: () => Promise<void>;
+  logout: () => void;
+};
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  refreshAuth: async () => {},
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Define the check function so we can reuse it
-  const checkAuth = useCallback(async () => {
+  const refreshAuth = async () => {
+    const token = localStorage.getItem("ccnet_token");
+
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      setLoading(true); // Optional: Set loading true while refreshing? Usually better not to flash loading screen
-      const res = await fetch("http://localhost:5000/api/auth/verify", {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.loggedIn && data.user) {
-          setUser(data.user);
-        } else {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    } catch (err) {
+      // decode JWT payload (no backend call needed)
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setUser({ userid: payload.userid });
+    } catch {
+      localStorage.removeItem("ccnet_token");
       setUser(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("ccnet_token");
+    setUser(null);
+  };
+
+  useEffect(() => {
+    refreshAuth();
   }, []);
 
-  // Initial check
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
   return (
-    <AuthContext.Provider value={{ user, loading, refreshAuth: checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, refreshAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useUser() {
-  return useContext(AuthContext);
-}
+export const useUser = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useUser must be used inside AuthProvider");
+  return ctx;
+};

@@ -15,22 +15,10 @@ export default function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, refreshAuth } = useUser();
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        router.push("/");
-        await refreshAuth();
-      } else {
-        console.error("Logout failed");
-      }
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("ccnet_token");
+    refreshAuth();
+    router.push("/login");
   };
 
   return (

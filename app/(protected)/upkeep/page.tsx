@@ -1,34 +1,84 @@
+"use client";
+import UpkeepCard from "@/app/cards/UpkeepCard";
+import { useEffect, useState } from "react";
+
 export default function Upkeep() {
+  const [allUpkeepData, setAllUpkeepData] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const token = localStorage.getItem("ccnet_token");
+
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      const res = await fetch(
+        "https://3rvzd8hz-5000.inc1.devtunnels.ms/allupkeep",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+          },
+        }
+      );
+
+      if (res.status === 401) {
+        console.error("Unauthorized");
+        return;
+      }
+
+      const data = await res.json();
+      setAllUpkeepData(data);
+    }
+
+    fetchData();
+  }, []);
+
+  type Town = {
+    name: string;
+    bank: number;
+    upkeep: number;
+    days: number;
+  };
+
+  const dayZeroTowns = allUpkeepData?.["0"] || [];
+  const dayOneTowns = allUpkeepData?.["1"] || [];
+  const dayTwoTowns = allUpkeepData?.["2"] || [];
+
+  if (!allUpkeepData) return <div>Loading...</div>;
+
   return (
-    <div>
-      <div className="flex items-center justify-center">
-        <div
-          className="
-          rounded-3xl
-          border border-black/10
-          bg-white/80 backdrop-blur-xl
-          px-10 py-12
-          shadow-2xl
-          text-center
-        "
-        >
-          <div className="inline-block mb-4 rounded-full border border-black/10 bg-black/5 px-4 py-1 text-sm text-black/70">
-            Under Development
-          </div>
+    <div className="px-6 py-10">
+      <div
+        className="
+        grid gap-6
+        grid-cols-1
+        md:grid-cols-3
+        max-w-7xl mx-auto
+      "
+      >
+        <UpkeepCard
+          title="Falling Today"
+          subtitle="Needs upkeep today"
+          towns={dayZeroTowns}
+          accent="red"
+        />
 
-          <h1 className="text-4xl md:text-5xl font-semibold text-black tracking-tight">
-            Coming Soon
-          </h1>
+        <UpkeepCard
+          title="Falling Tomorrow"
+          subtitle="1 day remaining"
+          towns={dayOneTowns}
+          accent="orange"
+        />
 
-          <p className="mt-4 max-w-md text-black/70">
-            CCNet upkeep tracking, alerts, and live nation data — all in one
-            clean dashboard.
-          </p>
-
-          <div className="my-8 h-px w-full bg-linear-to-r from-transparent via-black/20 to-transparent" />
-
-          <p className="text-sm text-black/50">Stay tuned 🚀</p>
-        </div>
+        <UpkeepCard
+          title="Falling Day After"
+          subtitle="2 days remaining"
+          towns={dayTwoTowns}
+          accent="green"
+        />
       </div>
     </div>
   );

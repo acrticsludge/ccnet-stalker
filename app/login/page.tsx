@@ -15,35 +15,41 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const res = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ id, password }),
-      });
+      const res = await fetch(
+        "https://3rvzd8hz-5000.inc1.devtunnels.ms/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, password }),
+        }
+      );
+
       const data = await res.json();
 
-      if (res.ok && data.user) {
-        setSuccess(true);
-        console.log("Logged in user:", data.user.userid);
-
-        router.push("/");
-        await refreshAuth();
-
-        setSuccess(false);
-        setId(data.Id);
-      } else {
-        setError(data.message || "Login failed.");
+      if (!res.ok) {
+        setError(data.message || "Login failed");
         setLoading(false);
+        return;
       }
+
+      // 🔐 SAVE TOKEN
+      localStorage.setItem("ccnet_token", data.token);
+
+      // 🔄 Update auth state BEFORE redirect
+      await refreshAuth();
+
+      router.push("/");
     } catch (err) {
-      console.log(err);
-      setError("An unexpected error occurred.");
+      console.error(err);
+      setError("Unexpected error");
+    } finally {
       setLoading(false);
     }
   };
+
   return (
     <div>
       <div className="flex items-center justify-center">

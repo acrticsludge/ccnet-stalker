@@ -39,7 +39,7 @@ export default function RootLayout({
           <NavBar />
 
           {/* CENTERING HAPPENS HERE */}
-          <main className="flex-1 flex items-center justify-center">
+          <main className="flex-1 flex items-center justify-center pt-20">
             {children}
           </main>
 
