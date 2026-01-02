@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useMemo } from "react";
+
 type TownCardProps = {
   name: string;
   mayor: string;
@@ -11,7 +13,10 @@ type TownCardProps = {
   residentCount: number;
 };
 
-export default function TownCard({
+const AVATAR_SIZE = 24;
+const MAX_VISIBLE_RESIDENTS = 15;
+
+function TownCard({
   name,
   mayor,
   nation,
@@ -21,6 +26,14 @@ export default function TownCard({
   residents,
   residentCount,
 }: TownCardProps) {
+  /* 🔹 Memoized formatting (cheap but frequent) */
+  const formattedBank = useMemo(() => bank.toLocaleString(), [bank]);
+
+  const visibleResidents = useMemo(
+    () => residents.slice(0, MAX_VISIBLE_RESIDENTS),
+    [residents]
+  );
+
   return (
     <div
       className="
@@ -42,13 +55,14 @@ export default function TownCard({
 
           <div className="mt-1 flex items-center gap-2 text-sm text-black/60">
             <img
-              src={`https://visage.surgeplay.com/face/24/${mayor}`}
-              width={24}
-              height={24}
+              src={`https://visage.surgeplay.com/face/${AVATAR_SIZE}/${mayor}`}
+              width={AVATAR_SIZE}
+              height={AVATAR_SIZE}
               className="rounded"
-              onError={(e) => {
-                e.currentTarget.src = `https://mc-heads.net/avatar/${mayor}/24`;
-              }}
+              loading="lazy"
+              onError={(e) =>
+                (e.currentTarget.src = `https://mc-heads.net/avatar/${mayor}/${AVATAR_SIZE}`)
+              }
             />
             <span>
               Mayor <span className="font-medium text-black">{mayor}</span>
@@ -67,22 +81,9 @@ export default function TownCard({
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-black/5 bg-black/5 px-3 py-2">
-          <p className="text-[11px] text-black/50">Bank</p>
-          <p className="text-sm font-semibold text-black">
-            ${bank.toLocaleString()}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-black/5 bg-black/5 px-3 py-2">
-          <p className="text-[11px] text-black/50">Upkeep</p>
-          <p className="text-sm font-semibold text-black">${upkeep}</p>
-        </div>
-
-        <div className="rounded-2xl border border-black/5 bg-black/5 px-3 py-2">
-          <p className="text-[11px] text-black/50">Days Left</p>
-          <p className="text-sm font-semibold text-black">{days}</p>
-        </div>
+        <Stat label="Bank" value={`$${formattedBank}`} />
+        <Stat label="Upkeep" value={`$${upkeep}`} />
+        <Stat label="Days Left" value={days} />
       </div>
 
       {/* Residents */}
@@ -90,36 +91,68 @@ export default function TownCard({
         <p className="text-sm font-medium text-black/70 mb-2">Residents</p>
 
         <div className="max-h-40 overflow-y-auto space-y-2">
-          {residents.length === 0 ? (
+          {visibleResidents.length === 0 ? (
             <p className="text-sm text-black/50">No residents found.</p>
           ) : (
-            residents.map((player, index) => (
-              <div
-                key={`${player}-${index}`}
-                className="
-                  flex items-center gap-3
-                  rounded-xl
-                  border border-black/5
-                  bg-white/60
-                  px-3 py-2
-                  text-sm text-black
-                "
-              >
-                <img
-                  src={`https://visage.surgeplay.com/face/24/${player}`}
-                  width={24}
-                  height={24}
-                  className="rounded"
-                  onError={(e) => {
-                    e.currentTarget.src = `https://mc-heads.net/avatar/${player}/24`;
-                  }}
-                />
-                <span>{player}</span>
-              </div>
+            visibleResidents.map((player) => (
+              <ResidentRow key={player} player={player} />
             ))
+          )}
+
+          {residentCount > MAX_VISIBLE_RESIDENTS && (
+            <p className="text-xs text-black/40 text-center mt-2">
+              +{residentCount - MAX_VISIBLE_RESIDENTS} more residents
+            </p>
           )}
         </div>
       </div>
     </div>
   );
 }
+
+/* 🔹 Small memoized subcomponents */
+
+const Stat = memo(function Stat({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/5 bg-black/5 px-3 py-2">
+      <p className="text-[11px] text-black/50">{label}</p>
+      <p className="text-sm font-semibold text-black">{value}</p>
+    </div>
+  );
+});
+
+const ResidentRow = memo(function ResidentRow({ player }: { player: string }) {
+  return (
+    <div
+      className="
+        flex items-center gap-3
+        rounded-xl
+        border border-black/5
+        bg-white/60
+        px-3 py-2
+        text-sm text-black
+      "
+    >
+      <img
+        src={`https://visage.surgeplay.com/face/24/${player}`}
+        width={24}
+        height={24}
+        className="rounded"
+        loading="lazy"
+        onError={(e) =>
+          (e.currentTarget.src = `https://mc-heads.net/avatar/${player}/24`)
+        }
+      />
+      <span>{player}</span>
+    </div>
+  );
+});
+
+/* 🔹 Prevent re-renders if props unchanged */
+export default memo(TownCard);
