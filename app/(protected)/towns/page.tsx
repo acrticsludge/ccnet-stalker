@@ -36,7 +36,7 @@ export default function Towns() {
 
     return allTowns
       .filter((town) => town.name.toLowerCase().includes(search.toLowerCase()))
-      .sort((a, b) => b.residents.length - a.residents.length);
+      .sort((a, b) => b.residentCount - a.residentCount);
   }, [allTowns, search]);
 
   return (
