@@ -8,6 +8,7 @@ type TownCardProps = {
   upkeep: number;
   days: number;
   residents: string[];
+  residentCount: number;
 };
 
 export default function TownCard({
@@ -18,6 +19,7 @@ export default function TownCard({
   upkeep,
   days,
   residents,
+  residentCount,
 }: TownCardProps) {
   return (
     <div
@@ -59,7 +61,7 @@ export default function TownCard({
         </div>
 
         <div className="rounded-full bg-black/5 px-4 py-1 text-sm text-black/70">
-          {residents.length} Residents
+          {residentCount} Residents
         </div>
       </div>
 

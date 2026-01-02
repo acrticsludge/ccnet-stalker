@@ -89,6 +89,7 @@ export default function Towns() {
               upkeep={town.upkeep}
               days={town.days}
               residents={town.residents}
+              residentCount={town.residentCount}
             />
           ))}
         </div>
