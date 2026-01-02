@@ -50,6 +50,7 @@ export default function NationCard({
         if (!res.ok) return;
 
         const data = await res.json();
+
         setTownDataMap((prev) => ({
           ...prev,
           [town]: data.getTownData,
@@ -59,8 +60,12 @@ export default function NationCard({
       }
     }
 
-    towns.forEach(fetchTownData);
-  }, [towns]);
+    towns.forEach((town) => {
+      if (!townDataMap[town]) {
+        fetchTownData(town);
+      }
+    });
+  }, [towns, townDataMap]);
 
   return (
     <div
@@ -80,9 +85,18 @@ export default function NationCard({
           <h2 className="text-2xl font-semibold text-black tracking-tight">
             {name}
           </h2>
-          <p className="text-sm text-black/60 mt-1">
-            Led by <span className="font-medium">{leader}</span>
-          </p>
+          <div className="mt-1 flex items-center gap-2 text-sm text-black/60">
+            <img
+              src={`https://visage.surgeplay.com/face/32/${leader}`}
+              alt={leader}
+              width={32}
+              height={32}
+            />
+
+            <span>
+              Led by <span className="font-medium text-black">{leader}</span>
+            </span>
+          </div>
         </div>
 
         <div className="rounded-full bg-black/5 px-4 py-1 text-sm text-black/70">
