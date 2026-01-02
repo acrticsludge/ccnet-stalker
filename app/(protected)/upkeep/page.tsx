@@ -36,13 +36,6 @@ export default function Upkeep() {
     fetchData();
   }, []);
 
-  type Town = {
-    name: string;
-    bank: number;
-    upkeep: number;
-    days: number;
-  };
-
   const dayZeroTowns = allUpkeepData?.["0"] || [];
   const dayOneTowns = allUpkeepData?.["1"] || [];
   const dayTwoTowns = allUpkeepData?.["2"] || [];
