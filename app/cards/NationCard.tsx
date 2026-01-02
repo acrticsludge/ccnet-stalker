@@ -55,7 +55,7 @@ export default function NationCard({
         </div>
 
         <div className="rounded-full bg-black/5 px-4 py-1 text-sm text-black/70">
-          {townCount} Towns
+          {towns.length} Towns
         </div>
       </div>
 
