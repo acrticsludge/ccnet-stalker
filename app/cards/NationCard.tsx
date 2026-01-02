@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type TownData = {
@@ -38,9 +39,12 @@ export default function NationCard({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-black tracking-tight">
+          <Link
+            href={`/nations/${encodeURIComponent(name)}`}
+            className="text-2xl font-semibold text-black tracking-tight hover:underline"
+          >
             {name}
-          </h2>
+          </Link>
 
           <div className="mt-1 flex items-center gap-2 text-sm text-black/60">
             <img
