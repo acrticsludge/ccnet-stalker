@@ -1,3 +1,4 @@
+import NationAnalyticsCard from "@/app/cards/NationAnalyticsCard";
 function LeaderCard({ leader }: { leader: string }) {
   return (
     <div
@@ -55,6 +56,10 @@ function getDaysLabel(days?: number) {
   if (days === 1) return "⏳ Falling Tomorrow";
   if (days === 2) return "⏱️ Falling in 2 Days";
   return `Safe for ${days} days`;
+}
+
+function safe(value: unknown): string | number {
+  return Number.isFinite(value) ? (value as number) : "—";
 }
 
 export default async function NationPage({
@@ -119,28 +124,36 @@ export default async function NationPage({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               label="Total Residents"
-              value={nationData.totalResidents}
+              value={safe(nationData.totalResidents)}
             />
             <StatCard label="Towns" value={nationData.towns.length} />
             <StatCard
               label="Avg / Town"
-              value={
-                nationData.towns.length === 0
-                  ? 0
-                  : Math.floor(
+              value={safe(
+                nationData.towns.length > 0
+                  ? Math.floor(
                       nationData.totalResidents / nationData.towns.length
                     )
-              }
+                  : null
+              )}
             />
+
             <StatCard label="Status" value="Stable" />
           </div>
         </div>
       </div>
 
-      {/* Player Growth (EMPTY FOR NOW) */}
+      {/* Player Growth*/}
       <div className="mb-10 rounded-3xl border border-black/10 bg-white/80 backdrop-blur-xl px-8 py-7 shadow-xl">
-        <h3 className="text-lg font-semibold text-black mb-2">Player Growth</h3>
-        <p className="text-sm text-black/50">Coming soon…</p>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-black">Player Growth</h3>
+
+          <span className="text-xs text-black/40">
+            Data since {"2026-01-03"}
+          </span>
+        </div>
+
+        <NationAnalyticsCard nation={nationData.name} />
       </div>
 
       {/* Towns */}

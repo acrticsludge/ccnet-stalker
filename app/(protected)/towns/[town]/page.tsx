@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import TownAnalyticsCard from "@/app/cards/TownAnalyticsCard";
 /* =====================
    UI HELPERS
 ===================== */
@@ -216,8 +216,15 @@ export default async function TownPage({
 
       {/* Player Growth */}
       <div className="mb-10 rounded-3xl border border-black/10 bg-white/80 backdrop-blur-xl px-8 py-7 shadow-xl">
-        <h3 className="text-lg font-semibold text-black mb-2">Player Growth</h3>
-        <p className="text-sm text-black/50">Coming soon…</p>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-black">Player Growth</h3>
+
+          <span className="text-xs text-black/40">
+            Data since {"2026-01-03"}
+          </span>
+        </div>
+
+        <TownAnalyticsCard town={townData.name} />
       </div>
 
       {/* Residents */}

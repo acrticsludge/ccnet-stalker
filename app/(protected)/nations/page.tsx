@@ -83,9 +83,9 @@ export default function Nations() {
               key={nation.name}
               name={nation.name}
               leader={nation.leader}
-              totalResidents={nation.totalResidents}
-              townCount={nation.townCount}
-              towns={nation.towns}
+              totalResidents={nation.totalResidents ?? 0}
+              townCount={nation.towns?.length ?? 0}
+              towns={nation.towns ?? []}
             />
           ))}
         </div>
