@@ -97,7 +97,14 @@ export default function NationCard({
                 text-sm text-black
               "
             >
-              <span className="font-medium">{town.name}</span>
+              <span className="font-medium">
+                <Link
+                  href={`/towns/${encodeURIComponent(town.name)}`}
+                  className="font-medium text-black hover:underline"
+                >
+                  {town.name}
+                </Link>
+              </span>
 
               <div className="flex items-center gap-2">
                 <div className="rounded-full bg-black/10 px-3 py-1 text-xs">

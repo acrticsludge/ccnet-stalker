@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useMemo } from "react";
+import Link from "next/link";
 
 type TownCardProps = {
   name: string;
@@ -49,9 +50,12 @@ function TownCard({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-black tracking-tight">
+          <Link
+            href={`/towns/${encodeURIComponent(name)}`}
+            className="font-medium text-2xl text-black hover:underline"
+          >
             {name}
-          </h2>
+          </Link>
 
           <div className="mt-1 flex items-center gap-2 text-sm text-black/60">
             <img
@@ -70,7 +74,15 @@ function TownCard({
           </div>
 
           <p className="mt-1 text-xs text-black/50">
-            Nation: <span className="font-medium">{nation}</span>
+            Nation:{" "}
+            <span className="font-medium">
+              <Link
+                href={`/nations/${encodeURIComponent(nation)}`}
+                className="tracking-tight hover:underline"
+              >
+                {nation}
+              </Link>
+            </span>
           </p>
         </div>
 
