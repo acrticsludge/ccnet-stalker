@@ -13,7 +13,7 @@ export default function Towns() {
       if (!token) return;
 
       const res = await fetch(
-        "https://3rvzd8hz-5000.inc1.devtunnels.ms/towns",
+        "https://pj5xzvw7-5000.use2.devtunnels.ms/towns",
         {
           headers: {
             Authorization: `Bearer ${token}`,

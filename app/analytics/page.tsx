@@ -23,7 +23,7 @@ export default function AnalyticsPage() {
         setLoading(true);
 
         const res = await fetch(
-          `https://3rvzd8hz-5000.inc1.devtunnels.ms/analytics/global?window=${window}`,
+          `https://pj5xzvw7-5000.use2.devtunnels.ms/analytics/global?window=${window}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

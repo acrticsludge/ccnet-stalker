@@ -13,7 +13,7 @@ export default function Nations() {
       if (!token) return;
 
       const res = await fetch(
-        "https://3rvzd8hz-5000.inc1.devtunnels.ms/nations",
+        "https://pj5xzvw7-5000.use2.devtunnels.ms/nations",
         {
           headers: {
             Authorization: `Bearer ${token}`,

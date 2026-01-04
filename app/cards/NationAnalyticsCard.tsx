@@ -4,7 +4,7 @@ export default function NationAnalyticsCard({ nation }: { nation: string }) {
   return (
     <AnalyticsCard
       title="Population Growth"
-      endpoint={`https://3rvzd8hz-5000.inc1.devtunnels.ms/nation/analytics?nation=${encodeURIComponent(
+      endpoint={`https://pj5xzvw7-5000.use2.devtunnels.ms/nation/analytics?nation=${encodeURIComponent(
         nation
       )}`}
     />

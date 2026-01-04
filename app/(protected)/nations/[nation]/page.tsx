@@ -71,7 +71,7 @@ export default async function NationPage({
   const nationName = decodeURIComponent(nation);
 
   const res = await fetch(
-    `https://3rvzd8hz-5000.inc1.devtunnels.ms/nation?nation=${encodeURIComponent(
+    `https://pj5xzvw7-5000.use2.devtunnels.ms/nation?nation=${encodeURIComponent(
       nationName
     )}`,
     {
