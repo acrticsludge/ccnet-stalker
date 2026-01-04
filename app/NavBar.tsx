@@ -9,6 +9,7 @@ const navItems = [
   { label: "Nations", href: "/nations" },
   { label: "Towns", href: "/towns" },
   { label: "Upkeep", href: "/upkeep" },
+  { label: "Analytics", href: "/analytics" },
 ];
 
 export default function NavBar() {
