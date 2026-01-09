@@ -5,6 +5,7 @@ import NavBar from "./NavBar";
 import Footer from "./Footer";
 import BackgroundImage from "./BackgroundImage";
 import { AuthProvider, useUser } from "./context/AuthProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
           {/* CENTERING HAPPENS HERE */}
           <main className="flex-1 flex items-center justify-center pt-20 pb-20">
             {children}
+            <Analytics />
           </main>
 
           {/* Footer */}
