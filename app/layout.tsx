@@ -6,6 +6,7 @@ import Footer from "./Footer";
 import BackgroundImage from "./BackgroundImage";
 import { AuthProvider, useUser } from "./context/AuthProvider";
 import { Analytics } from "@vercel/analytics/next";
+import { ReactLenis } from "lenis/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,27 +29,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
-      >
-        <AuthProvider>
-          {/* Background */}
-          <BackgroundImage />
+    <>
+      <ReactLenis
+        root
+        options={{ lerp: 0.1, duration: 1.5, smoothWheel: true }}
+      ></ReactLenis>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        >
+          <AuthProvider>
+            {/* Background */}
+            <BackgroundImage />
 
-          {/* Navbar */}
-          <NavBar />
+            {/* Navbar */}
+            <NavBar />
 
-          {/* CENTERING HAPPENS HERE */}
-          <main className="flex-1 flex items-center justify-center pt-20 pb-20">
-            {children}
-            <Analytics />
-          </main>
+            {/* CENTERING HAPPENS HERE */}
+            <main className="flex-1 flex items-center justify-center pt-20 pb-20">
+              {children}
+              <Analytics />
+            </main>
 
-          {/* Footer */}
-          <Footer />
-        </AuthProvider>
-      </body>
-    </html>
+            {/* Footer */}
+            <Footer />
+          </AuthProvider>
+        </body>
+      </html>
+      <ReactLenis />
+    </>
   );
 }
