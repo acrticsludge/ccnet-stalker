@@ -1,3 +1,5 @@
+import ReactLenis from "lenis/react";
+
 type Town = {
   name: string;
   bank: number;
@@ -49,15 +51,22 @@ export default function UpkeepCard({
       <p className="mt-1 text-sm text-black/60">{subtitle}</p>
 
       {/* Town List */}
+
       <div className="mt-6 max-h-56 overflow-y-auto text-left">
-        {towns.length === 0 ? (
-          <p className="text-sm text-black/50 text-center">No towns falling.</p>
-        ) : (
-          <ul className="space-y-2">
-            {towns.map((town) => (
-              <li
-                key={town.name}
-                className="
+        <ReactLenis
+          root
+          options={{ lerp: 0.1, duration: 1.5, smoothWheel: true }}
+        >
+          {towns.length === 0 ? (
+            <p className="text-sm text-black/50 text-center">
+              No towns falling.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {towns.map((town) => (
+                <li
+                  key={town.name}
+                  className="
                   flex items-center justify-between
                   rounded-xl
                   border border-black/5
@@ -65,15 +74,16 @@ export default function UpkeepCard({
                   px-4 py-2
                   text-sm
                 "
-              >
-                <span className="font-medium text-black">{town.name}</span>
-                <span className="text-black/60">
-                  ${town.bank.toLocaleString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+                >
+                  <span className="font-medium text-black">{town.name}</span>
+                  <span className="text-black/60">
+                    ${town.bank.toLocaleString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </ReactLenis>
       </div>
 
       <div className="mt-6 h-px w-full bg-linear-to-r from-transparent via-black/20 to-transparent" />
