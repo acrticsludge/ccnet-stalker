@@ -93,7 +93,7 @@ export default function NavBar() {
           <>
             <div className="rounded-full border border-black/10 bg-white/90 backdrop-blur px-4 py-3 shadow-xl flex items-center gap-2">
               <span className="text-sm font-medium">
-                Welcome, {user?.userid || "User"}
+                <Link href="/dashboard">Welcome, {user?.userid || "User"}</Link>
               </span>
             </div>
 
