@@ -91,10 +91,25 @@ export default function NavBar() {
       <div className="fixed top-6 right-6 z-50 flex flex-col items-end gap-2">
         {user ? (
           <>
-            <div className="rounded-full border border-black/10 bg-white/90 backdrop-blur px-4 py-3 shadow-xl flex items-center gap-2">
+            {/*<div className="rounded-full border border-black/10 bg-white/90 backdrop-blur px-4 py-3 shadow-xl flex items-center gap-2">
               <span className="text-sm font-medium">
                 <Link href="/dashboard">Welcome, {user?.userid || "User"}</Link>
               </span>
+            </div>*/}
+            <div className="relative">
+              {/* Animated border */}
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse blur-sm opacity-60"></div>
+
+              <div className="relative rounded-full bg-white/90 backdrop-blur px-4 py-3 shadow-xl flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  <Link href="/dashboard">
+                    Welcome, {user?.userid || "User"}
+                  </Link>
+                </span>
+                <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                  Click Me
+                </span>
+              </div>
             </div>
 
             <button
