@@ -1,5 +1,7 @@
 import Link from "next/link";
 import TownAnalyticsCard from "@/app/cards/TownAnalyticsCard";
+import { getDB } from "@/lib/mongodb";
+
 /* =====================
    UI HELPERS
 ===================== */
@@ -45,14 +47,14 @@ function DangerBanner({ days }: { days?: number }) {
           style: "bg-red-600 text-white",
         }
       : days === 1
-      ? {
-          text: "⏳ This town will fall TOMORROW",
-          style: "bg-orange-500 text-white",
-        }
-      : {
-          text: "⚠️ This town is at risk (2 days left)",
-          style: "bg-yellow-400 text-black",
-        };
+        ? {
+            text: "⏳ This town will fall TOMORROW",
+            style: "bg-orange-500 text-white",
+          }
+        : {
+            text: "⚠️ This town is at risk (2 days left)",
+            style: "bg-yellow-400 text-black",
+          };
 
   return (
     <div
@@ -70,10 +72,10 @@ function StatusBadge({ days }: { days?: number }) {
     days === 0
       ? { text: "FALLING TODAY", style: "bg-red-600 text-white" }
       : days === 1
-      ? { text: "TOMORROW", style: "bg-orange-500 text-white" }
-      : days === 2
-      ? { text: "2 DAYS", style: "bg-yellow-400 text-black" }
-      : { text: "STABLE", style: "bg-green-500 text-white" };
+        ? { text: "TOMORROW", style: "bg-orange-500 text-white" }
+        : days === 2
+          ? { text: "2 DAYS", style: "bg-yellow-400 text-black" }
+          : { text: "STABLE", style: "bg-green-500 text-white" };
 
   return (
     <span
@@ -96,10 +98,10 @@ function UpkeepBar({ bank, upkeep }: { bank: number; upkeep: number }) {
     daysLeft <= 0
       ? "bg-red-500"
       : daysLeft <= 1
-      ? "bg-orange-500"
-      : daysLeft <= 2
-      ? "bg-yellow-400"
-      : "bg-green-500";
+        ? "bg-orange-500"
+        : daysLeft <= 2
+          ? "bg-yellow-400"
+          : "bg-green-500";
 
   return (
     <div className="mt-5">
@@ -134,31 +136,21 @@ export default async function TownPage({
 }) {
   const { town } = await params;
   const townName = decodeURIComponent(town);
+  const db = await getDB();
 
-  const res = await fetch(
-    `https://pj5xzvw7-5000.use2.devtunnels.ms/town?town=${encodeURIComponent(
-      townName
-    )}`,
-    {
-      headers: {
-        "x-api-key": process.env.MY_API_SECRET!,
-      },
-      cache: "no-store",
-    }
-  );
+  const townData = await db.collection("towns").findOne({
+    name: { $regex: `^${townName}$`, $options: "i" },
+  });
 
-  if (!res.ok) {
+  if (!townData) {
     return (
       <div className="px-6 py-10 text-center text-black/50">Town not found</div>
     );
   }
 
-  const { getTownData } = await res.json();
-  const townData = getTownData;
-
   const residentCount = Number.isFinite(townData.residentCount)
     ? townData.residentCount
-    : townData.residents?.length ?? 0;
+    : (townData.residents?.length ?? 0);
 
   return (
     <div className="px-6 py-10 max-w-7xl mx-auto">

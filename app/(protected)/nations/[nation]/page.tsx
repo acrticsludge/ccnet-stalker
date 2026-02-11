@@ -1,4 +1,5 @@
 import NationAnalyticsCard from "@/app/cards/NationAnalyticsCard";
+import { getDB } from "@/lib/mongodb";
 function LeaderCard({ leader }: { leader: string }) {
   return (
     <div
@@ -69,29 +70,19 @@ export default async function NationPage({
 }) {
   const { nation } = await params;
   const nationName = decodeURIComponent(nation);
+  const db = await getDB();
 
-  const res = await fetch(
-    `https://pj5xzvw7-5000.use2.devtunnels.ms/nation?nation=${encodeURIComponent(
-      nationName
-    )}`,
-    {
-      headers: {
-        "x-api-key": process.env.MY_API_SECRET!,
-      },
-      cache: "no-store",
-    }
-  );
+  const nationData = await db.collection("nations").findOne({
+    name: { $regex: `^${nationName}$`, $options: "i" },
+  });
 
-  if (!res.ok) {
+  if (!nationData) {
     return (
       <div className="px-6 py-10 text-center text-black/50">
         Nation not found
       </div>
     );
   }
-
-  const { getNationData } = await res.json();
-  const nationData = getNationData;
 
   const sortedTowns = [...nationData.towns].sort((a: any, b: any) => {
     if ((a.days ?? 9999) !== (b.days ?? 9999)) {
@@ -132,9 +123,9 @@ export default async function NationPage({
               value={safe(
                 nationData.towns.length > 0
                   ? Math.floor(
-                      nationData.totalResidents / nationData.towns.length
+                      nationData.totalResidents / nationData.towns.length,
                     )
-                  : null
+                  : null,
               )}
             />
 
@@ -168,7 +159,7 @@ export default async function NationPage({
               <div
                 key={town.name}
                 className={`rounded-2xl border px-4 py-3 text-sm ${getUrgencyStyle(
-                  town.days
+                  town.days,
                 )}`}
               >
                 <p className="font-medium text-black">{town.name}</p>

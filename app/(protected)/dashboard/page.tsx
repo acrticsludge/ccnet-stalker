@@ -64,7 +64,7 @@ export default function DashboardPage() {
     if (user?.userid) {
       localStorage.setItem(
         `myNations_${user.userid}`,
-        JSON.stringify(myNations)
+        JSON.stringify(myNations),
       );
     }
   }, [myNations, user]);
@@ -90,15 +90,12 @@ export default function DashboardPage() {
       const token = localStorage.getItem("ccnet_token");
       if (!token) return;
 
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/towns",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        }
-      );
+      const res = await fetch("/api/towns", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
 
       if (!res.ok) return;
 
@@ -115,21 +112,18 @@ export default function DashboardPage() {
       const token = localStorage.getItem("ccnet_token");
       if (!token) return;
 
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/nations",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        }
-      );
+      const res = await fetch("/api/nations", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
 
       if (!res.ok) return;
 
       const data: Nation[] = await res.json();
       const filteredData = data.filter((nation) =>
-        myNations.includes(nation.name)
+        myNations.includes(nation.name),
       );
       setNationsData(filteredData);
     } catch (error) {
@@ -144,15 +138,12 @@ export default function DashboardPage() {
       const token = localStorage.getItem("ccnet_token");
       if (!token) return;
 
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/towns",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        }
-      );
+      const res = await fetch("/api/towns", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
 
       if (!res.ok) return;
 
@@ -170,15 +161,12 @@ export default function DashboardPage() {
       const token = localStorage.getItem("ccnet_token");
       if (!token) return;
 
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/nations",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        }
-      );
+      const res = await fetch("/api/nations", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
 
       if (!res.ok) return;
 
@@ -218,13 +206,13 @@ export default function DashboardPage() {
   const filteredTowns = allTowns.filter(
     (town) =>
       town.name.toLowerCase().includes(townSearch.toLowerCase()) &&
-      !myTowns.includes(town.name)
+      !myTowns.includes(town.name),
   );
 
   const filteredNations = allNations.filter(
     (nation) =>
       nation.name.toLowerCase().includes(nationSearch.toLowerCase()) &&
-      !myNations.includes(nation.name)
+      !myNations.includes(nation.name),
   );
 
   if (!user) {

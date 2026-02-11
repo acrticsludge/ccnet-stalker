@@ -18,14 +18,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, password }),
-        }
-      );
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, password }),
+      });
 
       const data = await res.json();
 

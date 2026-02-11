@@ -12,15 +12,12 @@ export default function Towns() {
       const token = localStorage.getItem("ccnet_token");
       if (!token) return;
 
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/towns",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        }
-      );
+      const res = await fetch("/api/towns", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
 
       if (!res.ok) return;
 
