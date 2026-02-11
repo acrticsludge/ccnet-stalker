@@ -14,15 +14,12 @@ export default function Upkeep() {
         return;
       }
 
-      const res = await fetch(
-        "https://pj5xzvw7-5000.use2.devtunnels.ms/allupkeep",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        }
-      );
+      const res = await fetch("/api/allupkeep", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
 
       if (res.status === 401) {
         console.error("Unauthorized");

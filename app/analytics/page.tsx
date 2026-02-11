@@ -22,15 +22,12 @@ export default function AnalyticsPage() {
       try {
         setLoading(true);
 
-        const res = await fetch(
-          `https://pj5xzvw7-5000.use2.devtunnels.ms/analytics/global?window=${window}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
-            },
-          }
-        );
+        const res = await fetch(`/api/analytics/global?window=${window}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
+          },
+        });
 
         if (!res.ok) throw new Error("Failed");
 
