@@ -216,7 +216,7 @@ export default function DashboardPage() {
   );
 
   if (!user) {
-    return <div>Please log in to access your dashboard.</div>;
+    return <div>Please log in to access your Dashboard.</div>;
   }
 
   return (
