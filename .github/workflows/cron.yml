@@ -1,14 +1,32 @@
 name: CCNet Scrape Cron
 
 on:
+  workflow_dispatch: # Allows manual trigger from GitHub UI
   schedule:
     - cron: "*/5 * * * *" # every 5 minutes
 
 jobs:
   run-cron:
     runs-on: ubuntu-latest
+
     steps:
       - name: Call Vercel Scrape Endpoint
         run: |
-          curl -X GET https://ccnet-stalker.vercel.app/api/cron/scrape \
-          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+          echo "Starting CCNet scrape cron..."
+
+          response=$(curl -s -w "%{http_code}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            https://ccnet-stalker.vercel.app/api/cron/scrape)
+
+          http_code="${response: -3}"
+          body="${response::-3}"
+
+          echo "Response Code: $http_code"
+          echo "Response Body: $body"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "Cron request failed!"
+            exit 1
+          fi
+
+          echo "Cron completed successfully."
