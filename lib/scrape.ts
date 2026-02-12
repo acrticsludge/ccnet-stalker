@@ -2,7 +2,7 @@ import { getDB } from "./mongodb";
 import { startOfDay } from "./analytics";
 
 /* =====================================================
-   MAIN SCRAPE (from your Express server)
+   MAIN SCRAPE
 ===================================================== */
 
 export async function fetchSaveUpdateTownNationAndUpkeepData() {
@@ -28,9 +28,9 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
 
   const townsCollection = db.collection("towns");
 
-  const uniqueTowns = new Map();
-  const nationData = new Map();
-  const upkeepData = new Map();
+  const uniqueTowns = new Map<string, any>();
+  const nationData = new Map<string, any>();
+  const upkeepData = new Map<string, any>();
 
   function getResidentCount(desc: string) {
     const match = desc.match(/Residents.*?\((\d+)\)/i);
@@ -43,6 +43,8 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
 
     if (uniqueTowns.has(town)) continue;
 
+    /* ---------- Economy ---------- */
+
     const bankMatch = desc.match(/Bank.*?\$([\d,]+\.?\d*)/);
     const upkeepMatch = desc.match(/Upkeep.*?\$([\d,]+\.?\d*)/);
 
@@ -53,6 +55,8 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
       : 0;
 
     const daysLeft = upkeep > 0 ? Math.floor(bank / upkeep) : 9999;
+
+    /* ---------- Nation ---------- */
 
     const nationMatch = desc.match(/Member of ([\w\s]+)|Capital of ([\w\s]+)/);
 
@@ -68,10 +72,14 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
       }
     }
 
+    /* ---------- Mayor ---------- */
+
     const mayorMatch = desc.match(/Mayor.*:\s*([^<]+)/i);
     const mayor = mayorMatch ? mayorMatch[1].trim() : "Unknown";
 
     const residentCount = getResidentCount(desc);
+
+    /* ---------- Town Bulk ---------- */
 
     uniqueTowns.set(town, {
       updateOne: {
@@ -92,7 +100,7 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
       },
     });
 
-    /* ----- Nation Build ----- */
+    /* ---------- Nation Build ---------- */
 
     if (nation !== "Unknown") {
       if (!nationData.has(nation)) {
@@ -105,20 +113,33 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
       }
 
       const nData = nationData.get(nation);
-      nData.towns.push({ name: town, bank, upkeep, days: daysLeft });
+
+      nData.towns.push({
+        name: town,
+        bank,
+        upkeep,
+        days: daysLeft,
+      });
+
       nData.totalResidents += residentCount;
 
       if (isCapital) nData.leader = mayor;
     }
 
-    /* ----- Upkeep Danger ----- */
+    /* ---------- Upkeep Danger ---------- */
 
     if (daysLeft <= 2) {
       if (!upkeepData.has(nation)) {
-        upkeepData.set(nation, { nation, days0: [], days1: [], days2: [] });
+        upkeepData.set(nation, {
+          nation,
+          days0: [],
+          days1: [],
+          days2: [],
+        });
       }
 
       const entry = upkeepData.get(nation);
+
       const townInfo = { name: town, bank, upkeep, days: daysLeft };
 
       if (daysLeft === 0) entry.days0.push(townInfo);
@@ -127,11 +148,23 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
     }
   }
 
-  /* -------- BULK WRITE -------- */
+  /* =====================================================
+     WRITE TOWNS + DELETE REMOVED
+  ===================================================== */
 
   if (uniqueTowns.size) {
     await townsCollection.bulkWrite([...uniqueTowns.values()]);
+
+    const liveNames = Array.from(uniqueTowns.keys());
+
+    await townsCollection.deleteMany({
+      name: { $nin: liveNames },
+    });
   }
+
+  /* =====================================================
+     WRITE NATIONS + DELETE REMOVED
+  ===================================================== */
 
   if (nationData.size) {
     await db.collection("nations").bulkWrite(
@@ -143,7 +176,17 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
         },
       })),
     );
+
+    const liveNations = Array.from(nationData.keys());
+
+    await db.collection("nations").deleteMany({
+      name: { $nin: liveNations },
+    });
   }
+
+  /* =====================================================
+     WRITE UPKEEP + CLEAR SAFE
+  ===================================================== */
 
   if (upkeepData.size) {
     await db.collection("upkeep-data").bulkWrite(
@@ -155,12 +198,21 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
         },
       })),
     );
+
+    const dangerous = Array.from(upkeepData.keys());
+
+    await db.collection("upkeep-data").deleteMany({
+      nation: { $nin: dangerous },
+    });
+  } else {
+    await db.collection("upkeep-data").deleteMany({});
   }
 }
 
 /* =====================================================
-   ANALYTICS SNAPSHOT (Daily history index)
+   ANALYTICS SNAPSHOT (V2 SERIES)
 ===================================================== */
+
 export async function AnalyticsIndex() {
   const db = await getDB();
   const today = startOfDay();
@@ -168,11 +220,36 @@ export async function AnalyticsIndex() {
   const towns = await db.collection("towns").find({}).toArray();
 
   if (towns.length) {
-    await db.collection("town_analytics").insertMany(
+    await db.collection("town_stats_v2").bulkWrite(
       towns.map((t) => ({
-        town: t.name,
-        residents: t.residentCount ?? 0,
-        timestamp: today,
+        updateOne: {
+          filter: { town: t.name },
+          update: [
+            {
+              $set: {
+                series: {
+                  $slice: [
+                    {
+                      $concatArrays: [
+                        {
+                          $filter: {
+                            input: "$series",
+                            as: "s",
+                            cond: { $ne: ["$$s.d", today] },
+                          },
+                        },
+                        [{ d: today, r: t.residentCount ?? 0 }],
+                      ],
+                    },
+                    -365,
+                  ],
+                },
+                updatedAt: new Date(),
+              },
+            },
+          ],
+          upsert: true,
+        },
       })),
     );
   }
@@ -180,30 +257,37 @@ export async function AnalyticsIndex() {
   const nations = await db.collection("nations").find({}).toArray();
 
   if (nations.length) {
-    await db.collection("nation_analytics").insertMany(
+    await db.collection("nation_stats_v2").bulkWrite(
       nations.map((n) => ({
-        nation: n.name,
-        residents: n.totalResidents ?? 0,
-        timestamp: today,
+        updateOne: {
+          filter: { nation: n.name },
+          update: [
+            {
+              $set: {
+                series: {
+                  $slice: [
+                    {
+                      $concatArrays: [
+                        {
+                          $filter: {
+                            input: "$series",
+                            as: "s",
+                            cond: { $ne: ["$$s.d", today] },
+                          },
+                        },
+                        [{ d: today, r: n.totalResidents ?? 0 }],
+                      ],
+                    },
+                    -365,
+                  ],
+                },
+                updatedAt: new Date(),
+              },
+            },
+          ],
+          upsert: true,
+        },
       })),
     );
   }
-}
-
-/* =====================================================
-   WEEKLY CLEANUP
-===================================================== */
-
-export async function cleanupAnalytics() {
-  const db = await getDB();
-
-  const oneYearAgo = new Date(Date.now() - 365 * 864e5);
-
-  await db
-    .collection("town_stats")
-    .updateMany({}, { $pull: { series: { d: { $lt: oneYearAgo } } } as any });
-
-  await db
-    .collection("nation_stats")
-    .updateMany({}, { $pull: { series: { d: { $lt: oneYearAgo } } } as any });
 }

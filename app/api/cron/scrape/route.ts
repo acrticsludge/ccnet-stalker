@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
-import {
-  fetchSaveUpdateTownNationAndUpkeepData,
-  AnalyticsIndex,
-} from "@/lib/scrape";
+import { fetchSaveUpdateTownNationAndUpkeepData } from "@/lib/scrape";
+import { AnalyticsIndex } from "@/lib/scrape";
 
 export async function GET(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
+  const apiKey = req.headers.get("x-cron-secret");
+
+  if (apiKey !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  await fetchSaveUpdateTownNationAndUpkeepData();
-  await AnalyticsIndex();
+  try {
+    await fetchSaveUpdateTownNationAndUpkeepData();
+    await AnalyticsIndex();
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Cron failed:", err);
+
+    return NextResponse.json({ error: "Cron failed" }, { status: 500 });
+  }
 }

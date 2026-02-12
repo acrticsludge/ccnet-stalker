@@ -1,0 +1,14 @@
+name: CCNet Scrape Cron
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # every 5 minutes
+
+jobs:
+  run-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel Scrape Endpoint
+        run: |
+          curl -X GET https://ccnet-stalker.vercel.app/api/cron/scrape \
+          -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
