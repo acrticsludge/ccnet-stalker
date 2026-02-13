@@ -3,7 +3,7 @@ name: CCNet Scrape Cron
 on:
   workflow_dispatch: # Allows manual trigger from GitHub UI
   schedule:
-    - cron: "*/5 * * * *" # every 5 minutes
+    - cron: "* * * * *" # every 5 minutes
 
 jobs:
   run-cron:
