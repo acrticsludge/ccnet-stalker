@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 
     const series = normalizeSeries(doc.series);
 
-    if (series.length < 2) {
+    if (!Array.isArray(series) || series.length === 0) {
       return NextResponse.json({ nation, empty: true });
     }
 

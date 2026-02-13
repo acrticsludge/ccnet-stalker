@@ -20,6 +20,8 @@ export function normalizeSeries(series: any[]) {
 }
 
 export function getBase(series: any[], fromDate: Date) {
+  if (!series?.length) return null;
+
   const from = startOfDay(fromDate).getTime();
 
   for (let i = series.length - 1; i >= 0; i--) {
@@ -27,5 +29,5 @@ export function getBase(series: any[], fromDate: Date) {
     if (d <= from) return series[i].r;
   }
 
-  return series[0]?.r ?? null;
+  return series[0].r;
 }
