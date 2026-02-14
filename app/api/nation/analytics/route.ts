@@ -25,6 +25,8 @@ export async function GET(req: Request) {
     }
 
     const series = normalizeSeries(doc.series);
+    console.log("RAW SERIES:", doc.series);
+    console.log("NORMALIZED SERIES:", series);
 
     if (!Array.isArray(series) || series.length === 0) {
       return NextResponse.json({ nation, empty: true });

@@ -30,10 +30,9 @@ function TownCard({
   /* 🔹 Memoized formatting (cheap but frequent) */
   const formattedBank = useMemo(() => bank.toLocaleString(), [bank]);
 
-  const visibleResidents = useMemo(
-    () => residents.slice(0, MAX_VISIBLE_RESIDENTS),
-    [residents]
-  );
+  const visibleResidents = useMemo(() => {
+    return (residents ?? []).slice(0, MAX_VISIBLE_RESIDENTS);
+  }, [residents]);
 
   return (
     <div

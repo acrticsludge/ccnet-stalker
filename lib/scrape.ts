@@ -4,7 +4,6 @@ import { startOfDay } from "./analytics";
 /* =====================================================
    MAIN SCRAPE
 ===================================================== */
-
 export async function fetchSaveUpdateTownNationAndUpkeepData() {
   const db = await getDB();
 
@@ -21,9 +20,14 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
     },
   );
 
+  if (!response.ok) {
+    console.error("Scrape failed:", response.status);
+    return;
+  }
+
   const data = await response.json();
   const datalist = Object.values(
-    data["sets"]["towny.markerset"]["areas"],
+    data?.sets?.["towny.markerset"]?.areas || {},
   ) as any[];
 
   const townsCollection = db.collection("towns");
@@ -32,21 +36,32 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
   const nationData = new Map<string, any>();
   const upkeepData = new Map<string, any>();
 
-  function getResidentCount(desc: string) {
-    const match = desc.match(/Residents.*?\((\d+)\)/i);
+  function cleanHTML(html: string) {
+    return html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/?[^>]+>/g, "")
+      .replace(/\r/g, "")
+      .trim();
+  }
+
+  function getResidentCount(text: string) {
+    const match = text.match(/Residents\s*\((\d+)\)/i);
     return match ? parseInt(match[1]) : 0;
   }
 
   for (const townObj of datalist) {
-    const town = townObj.label;
-    const desc = townObj.desc;
+    const town = townObj?.label;
+    const rawDesc = townObj?.desc;
 
+    if (!town || !rawDesc) continue;
     if (uniqueTowns.has(town)) continue;
+
+    const desc = cleanHTML(rawDesc);
 
     /* ---------- Economy ---------- */
 
-    const bankMatch = desc.match(/Bank.*?\$([\d,]+\.?\d*)/);
-    const upkeepMatch = desc.match(/Upkeep.*?\$([\d,]+\.?\d*)/);
+    const bankMatch = desc.match(/Bank.*?\$([\d,]+\.?\d*)/i);
+    const upkeepMatch = desc.match(/Upkeep.*?\$([\d,]+\.?\d*)/i);
 
     const bank = bankMatch ? parseFloat(bankMatch[1].replace(/,/g, "")) : 0;
 
@@ -58,7 +73,9 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
 
     /* ---------- Nation ---------- */
 
-    const nationMatch = desc.match(/Member of ([\w\s]+)|Capital of ([\w\s]+)/);
+    const nationMatch = desc.match(
+      /Member of\s+([^\n]+)|Capital of\s+([^\n]+)/i,
+    );
 
     let nation = "Unknown";
     let isCapital = false;
@@ -67,15 +84,26 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
       if (nationMatch[2]) {
         nation = nationMatch[2].trim();
         isCapital = true;
-      } else {
+      } else if (nationMatch[1]) {
         nation = nationMatch[1].trim();
       }
     }
 
     /* ---------- Mayor ---------- */
 
-    const mayorMatch = desc.match(/Mayor.*:\s*([^<]+)/i);
+    const mayorMatch = desc.match(/Mayor:\s*([^\n]+)/i);
     const mayor = mayorMatch ? mayorMatch[1].trim() : "Unknown";
+
+    /* ---------- Residents ---------- */
+
+    const residentsMatch = desc.match(/Residents\s*\(\d+\):\s*([^\n]+)/i);
+
+    const residents = residentsMatch
+      ? residentsMatch[1]
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean)
+      : [];
 
     const residentCount = getResidentCount(desc);
 
@@ -92,6 +120,7 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
             upkeep,
             days: daysLeft,
             nation,
+            residents,
             residentCount,
             updatedAt: new Date(),
           },
@@ -139,7 +168,6 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
       }
 
       const entry = upkeepData.get(nation);
-
       const townInfo = { name: town, bank, upkeep, days: daysLeft };
 
       if (daysLeft === 0) entry.days0.push(townInfo);
@@ -148,9 +176,9 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
     }
   }
 
-  /* =====================================================
-     WRITE TOWNS + DELETE REMOVED
-  ===================================================== */
+  /* ===============================
+     WRITE TOWNS
+  =============================== */
 
   if (uniqueTowns.size) {
     await townsCollection.bulkWrite([...uniqueTowns.values()]);
@@ -162,9 +190,9 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
     });
   }
 
-  /* =====================================================
-     WRITE NATIONS + DELETE REMOVED
-  ===================================================== */
+  /* ===============================
+     WRITE NATIONS
+  =============================== */
 
   if (nationData.size) {
     await db.collection("nations").bulkWrite(
@@ -184,9 +212,9 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
     });
   }
 
-  /* =====================================================
-     WRITE UPKEEP + CLEAR SAFE
-  ===================================================== */
+  /* ===============================
+     WRITE UPKEEP
+  =============================== */
 
   if (upkeepData.size) {
     await db.collection("upkeep-data").bulkWrite(
@@ -212,10 +240,13 @@ export async function fetchSaveUpdateTownNationAndUpkeepData() {
 /* =====================================================
    ANALYTICS SNAPSHOT (V2 SERIES)
 ===================================================== */
-
 export async function AnalyticsIndex() {
   const db = await getDB();
   const today = startOfDay();
+
+  /* =========================
+     TOWN ANALYTICS
+  ========================= */
 
   const towns = await db.collection("towns").find({}).toArray();
 
@@ -224,35 +255,34 @@ export async function AnalyticsIndex() {
       towns.map((t) => ({
         updateOne: {
           filter: { town: t.name },
-          update: [
-            {
-              $set: {
-                series: {
-                  $slice: [
-                    {
-                      $concatArrays: [
-                        {
-                          $filter: {
-                            input: "$series",
-                            as: "s",
-                            cond: { $ne: ["$$s.d", today] },
-                          },
-                        },
-                        [{ d: today, r: t.residentCount ?? 0 }],
-                      ],
-                    },
-                    -365,
-                  ],
-                },
-                updatedAt: new Date(),
+          update: {
+            $setOnInsert: {
+              town: t.name,
+              series: [],
+            },
+            $push: {
+              series: {
+                $each: [
+                  {
+                    d: today,
+                    r: Number.isFinite(t.residentCount) ? t.residentCount : 0,
+                  },
+                ],
+                $slice: -365,
               },
             },
-          ],
-          upsert: true,
+            $set: {
+              updatedAt: new Date(),
+            },
+          } as any,
         },
       })),
     );
   }
+
+  /* =========================
+     NATION ANALYTICS
+  ========================= */
 
   const nations = await db.collection("nations").find({}).toArray();
 
@@ -261,30 +291,27 @@ export async function AnalyticsIndex() {
       nations.map((n) => ({
         updateOne: {
           filter: { nation: n.name },
-          update: [
-            {
-              $set: {
-                series: {
-                  $slice: [
-                    {
-                      $concatArrays: [
-                        {
-                          $filter: {
-                            input: "$series",
-                            as: "s",
-                            cond: { $ne: ["$$s.d", today] },
-                          },
-                        },
-                        [{ d: today, r: n.totalResidents ?? 0 }],
-                      ],
-                    },
-                    -365,
-                  ],
-                },
-                updatedAt: new Date(),
+          update: {
+            $setOnInsert: {
+              nation: n.name,
+              series: [],
+            },
+            $push: {
+              series: {
+                $each: [
+                  {
+                    d: today,
+                    r: Number.isFinite(n.totalResidents) ? n.totalResidents : 0,
+                  },
+                ],
+                $slice: -365,
               },
             },
-          ],
+            $set: {
+              updatedAt: new Date(),
+            },
+          } as any,
+
           upsert: true,
         },
       })),
