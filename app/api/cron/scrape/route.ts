@@ -10,13 +10,21 @@ export async function GET(req: Request) {
   }
 
   try {
+    console.log("🔄 Cron triggered");
+
     await fetchSaveUpdateTownNationAndUpkeepData();
     await AnalyticsIndex();
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Cron failed:", err);
+  } catch (err: any) {
+    console.error("❌ CRON ERROR:", err);
 
-    return NextResponse.json({ error: "Cron failed" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: err?.message || "Unknown error",
+        stack: err?.stack,
+      },
+      { status: 500 },
+    );
   }
 }
