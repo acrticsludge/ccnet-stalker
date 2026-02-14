@@ -255,25 +255,42 @@ export async function AnalyticsIndex() {
       towns.map((t) => ({
         updateOne: {
           filter: { town: t.name },
-          update: {
-            $setOnInsert: {
-              town: t.name,
-            },
-            $push: {
-              series: {
-                $each: [
-                  {
-                    d: today,
-                    r: Number.isFinite(t.residentCount) ? t.residentCount : 0,
-                  },
-                ],
-                $slice: -365,
+          update: [
+            {
+              $set: {
+                series: {
+                  $cond: [{ $isArray: "$series" }, "$series", []],
+                },
               },
             },
-            $set: {
-              updatedAt: new Date(),
+            {
+              $set: {
+                updatedAt: new Date(),
+              },
             },
-          } as any,
+            {
+              $set: {
+                series: {
+                  $slice: [
+                    {
+                      $concatArrays: [
+                        "$series",
+                        [
+                          {
+                            d: today,
+                            r: Number.isFinite(t.residentCount)
+                              ? t.residentCount
+                              : 0,
+                          },
+                        ],
+                      ],
+                    },
+                    -365,
+                  ],
+                },
+              },
+            },
+          ],
           upsert: true,
         },
       })),
@@ -291,25 +308,42 @@ export async function AnalyticsIndex() {
       nations.map((n) => ({
         updateOne: {
           filter: { nation: n.name },
-          update: {
-            $setOnInsert: {
-              nation: n.name,
-            },
-            $push: {
-              series: {
-                $each: [
-                  {
-                    d: today,
-                    r: Number.isFinite(n.totalResidents) ? n.totalResidents : 0,
-                  },
-                ],
-                $slice: -365,
+          update: [
+            {
+              $set: {
+                series: {
+                  $cond: [{ $isArray: "$series" }, "$series", []],
+                },
               },
             },
-            $set: {
-              updatedAt: new Date(),
+            {
+              $set: {
+                updatedAt: new Date(),
+              },
             },
-          } as any,
+            {
+              $set: {
+                series: {
+                  $slice: [
+                    {
+                      $concatArrays: [
+                        "$series",
+                        [
+                          {
+                            d: today,
+                            r: Number.isFinite(n.totalResidents)
+                              ? n.totalResidents
+                              : 0,
+                          },
+                        ],
+                      ],
+                    },
+                    -365,
+                  ],
+                },
+              },
+            },
+          ],
           upsert: true,
         },
       })),
