@@ -258,7 +258,6 @@ export async function AnalyticsIndex() {
           update: {
             $setOnInsert: {
               town: t.name,
-              series: [],
             },
             $push: {
               series: {
@@ -275,6 +274,7 @@ export async function AnalyticsIndex() {
               updatedAt: new Date(),
             },
           } as any,
+          upsert: true,
         },
       })),
     );
@@ -294,7 +294,6 @@ export async function AnalyticsIndex() {
           update: {
             $setOnInsert: {
               nation: n.name,
-              series: [],
             },
             $push: {
               series: {
@@ -311,7 +310,6 @@ export async function AnalyticsIndex() {
               updatedAt: new Date(),
             },
           } as any,
-
           upsert: true,
         },
       })),
